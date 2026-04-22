@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 TOKEN   = os.environ.get("BOT_TOKEN", "ВСТАВЬ_ТОКЕН_СЮДА")
 API     = f"https://api.telegram.org/bot{TOKEN}"
-CHANNEL = "https://t.me/portuniana"
+CHANNEL = "https://t.me/globalvillage_live"
 PDF     = os.path.join(os.path.dirname(__file__), "ebook.pdf")
 
 
@@ -28,15 +28,15 @@ def send_document(chat_id):
 def send_channel_invite(chat_id):
     keyboard = {
         "inline_keyboard": [[
-            {"text": "📢 Перейти в канал Portuniana", "url": CHANNEL}
+            {"text": "🌍 Перейти в канал Global Village", "url": CHANNEL}
         ]]
     }
     requests.post(f"{API}/sendMessage", json={
         "chat_id": chat_id,
         "text": (
-            "А ещё — подписывайся на канал *Portuniana* 🇵🇹\n\n"
-            "Каждый день живой португальский: слова, фразы, "
-            "разговорные ситуации — без скуки и сухой грамматики."
+            "А ещё — подписывайся на канал *Global Village* 🌍\n\n"
+            "Жизнь, язык и культура изнутри: Португалия, переезд, "
+            "живой португальский — каждый день без скуки."
         ),
         "parse_mode": "Markdown",
         "reply_markup": keyboard
