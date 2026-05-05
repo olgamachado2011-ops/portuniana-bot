@@ -12,7 +12,7 @@ STRIPE_SECRET_KEY     = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICE_ID       = os.environ.get("STRIPE_PRICE_ID", "")   # заполним ниже
 PRO_CHANNEL_ID        = os.environ.get("PRO_CHANNEL_ID", "")    # numeric ID @portuniana_pro
-RENDER_URL            = os.environ.get("RENDER_URL", "")        # https://portuniana-bot.onrender.com
+RENDER_URL            = os.environ.get("RENDER_URL", "https://portuniana-bot.onrender.com")
 
 API      = f"https://api.telegram.org/bot{TOKEN}"
 CHANNEL  = "https://t.me/globalvillage_live"
