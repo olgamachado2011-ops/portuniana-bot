@@ -70,8 +70,8 @@ def create_stripe_session(chat_id):
         mode="subscription",
         line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
         client_reference_id=str(chat_id),
-        success_url=f"{RENDER_URL}/payment-success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{RENDER_URL}/payment-cancel",
+        success_url="https://portuniana-bot.onrender.com/payment-success",
+        cancel_url="https://portuniana-bot.onrender.com/payment-cancel",
         metadata={"telegram_chat_id": str(chat_id)}
     )
     return session.url
