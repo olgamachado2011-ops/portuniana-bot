@@ -66,6 +66,13 @@ def create_pro_invite():
 
 def create_stripe_session(chat_id):
     """Создаёт Stripe Checkout Session и возвращает URL."""
+    success = "https://portuniana-bot.onrender.com/payment-success"
+       cancel  = "https://portuniana-bot.onrender.com/payment-cancel"
+       price   = STRIPE_PRICE_ID
+       print(f"DEBUG key prefix: {str(stripe.api_key)[:12]!r}")
+       print(f"DEBUG success_url: {success!r}")
+       print(f"DEBUG cancel_url:  {cancel!r}")
+       print(f"DEBUG price_id:    {price!r}")
     session = stripe.checkout.Session.create(
         mode="subscription",
         line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
