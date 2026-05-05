@@ -6,12 +6,11 @@ from flask import Flask, request, Response
 
 app = Flask(__name__)
 
-# ── Env vars ────────────────────────────────────────────────────
 TOKEN                 = os.environ.get("BOT_TOKEN", "")
 STRIPE_SECRET_KEY     = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICE_ID       = os.environ.get("STRIPE_PRICE_ID", "")   # заполним ниже
-PRO_CHANNEL_ID        = os.environ.get("PRO_CHANNEL_ID", "")    # numeric ID @portuniana_pro
+STRIPE_PRICE_ID       = os.environ.get("STRIPE_PRICE_ID", "")
+PRO_CHANNEL_ID        = os.environ.get("PRO_CHANNEL_ID", "")
 RENDER_URL            = os.environ.get("RENDER_URL", "https://portuniana-bot.onrender.com")
 
 API      = f"https://api.telegram.org/bot{TOKEN}"
@@ -21,7 +20,6 @@ PDF      = os.path.join(os.path.dirname(__file__), "ebook.pdf")
 stripe.api_key = STRIPE_SECRET_KEY
 
 
-# ── Helpers ─────────────────────────────────────────────────────
 def send(chat_id, text, keyboard=None, parse_mode="Markdown"):
     payload = {"chat_id": chat_id, "text": text, "parse_mode": parse_mode}
     if keyboard:
@@ -54,13 +52,13 @@ def send_channel_invite(chat_id):
 
 
 def create_pro_invite():
-    """Создаёт одноразовую инвайт-ссылку в @portuniana_pro."""
     resp = requests.post(f"{API}/createChatInviteLink", json={
         "chat_id": PRO_CHANNEL_ID,
         "member_limit": 1,
         "creates_join_request": False
     })
     data = resp.json()
+    print(f"DEBUG invite: {data}")
     return data.get("result", {}).get("invite_link")
 
 
@@ -85,7 +83,6 @@ def create_stripe_session(chat_id):
     raise Exception(f"Stripe error: {result}")
 
 
-# ── Telegram webhook ─────────────────────────────────────────────
 @app.route(f"/webhook/{TOKEN}", methods=["POST"])
 def webhook():
     update = request.get_json(silent=True) or {}
@@ -98,7 +95,6 @@ def webhook():
 
     if text.startswith("/start pro") or text.startswith("/pro"):
         handle_pro(chat_id)
-
     elif text.startswith("/start"):
         send_document(chat_id)
         send_channel_invite(chat_id)
@@ -113,7 +109,7 @@ def handle_pro(chat_id):
             {"text": "💳 Оплатить €6/мес", "url": url}
         ]]}
         send(chat_id,
-             "🇵🇹 *Portuniana Pro — €6/мес*\n\n"
+             "🇵🇹 *Portuniana — €6/мес*\n\n"
              "Каждую неделю:\n"
              "• Полный урок с примерами из жизни\n"
              "• Упражнение + аудио-разбор\n"
@@ -125,7 +121,6 @@ def handle_pro(chat_id):
         print(f"Stripe error: {e}")
 
 
-# ── Stripe webhook ───────────────────────────────────────────────
 @app.route("/stripe-webhook", methods=["POST"])
 def stripe_webhook():
     payload    = request.data
@@ -141,23 +136,24 @@ def stripe_webhook():
 
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        chat_id = session.get("metadata", {}).get("telegram_chat_id")
+        metadata = session["metadata"] if "metadata" in session else {}
+        chat_id = metadata.get("telegram_chat_id") if isinstance(metadata, dict) else getattr(metadata, "telegram_chat_id", None)
+        print(f"DEBUG chat_id from webhook: {chat_id}")
         if chat_id:
             invite_link = create_pro_invite()
             if invite_link:
                 keyboard = {"inline_keyboard": [[
-                    {"text": "🔐 Войти в Portuniana Pro", "url": invite_link}
+                    {"text": "🔐 Войти в Portuniana", "url": invite_link}
                 ]]}
                 send(int(chat_id),
                      "✅ *Оплата прошла!*\n\n"
-                     "Добро пожаловать в Portuniana Pro 🇵🇹\n"
+                     "Добро пожаловать в Portuniana 🇵🇹\n"
                      "Нажми кнопку ниже чтобы войти в группу:",
                      keyboard)
 
     return Response("ok", status=200)
 
 
-# ── Страницы после оплаты ────────────────────────────────────────
 @app.route("/payment-success")
 def payment_success():
     return """
