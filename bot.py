@@ -65,23 +65,24 @@ def create_pro_invite():
 
 
 def create_stripe_session(chat_id):
-    """Создаёт Stripe Checkout Session и возвращает URL."""
-    success = "https://portuniana-bot.onrender.com/payment-success"
-       cancel  = "https://portuniana-bot.onrender.com/payment-cancel"
-       price   = STRIPE_PRICE_ID
-       print(f"DEBUG key prefix: {str(stripe.api_key)[:12]!r}")
-       print(f"DEBUG success_url: {success!r}")
-       print(f"DEBUG cancel_url:  {cancel!r}")
-       print(f"DEBUG price_id:    {price!r}")
-    session = stripe.checkout.Session.create(
-        mode="subscription",
-        line_items=[{"price": STRIPE_PRICE_ID, "quantity": 1}],
-        client_reference_id=str(chat_id),
-        success_url="https://portuniana-bot.onrender.com/payment-success",
-        cancel_url="https://portuniana-bot.onrender.com/payment-cancel",
-        metadata={"telegram_chat_id": str(chat_id)}
+    resp = requests.post(
+        "https://api.stripe.com/v1/checkout/sessions",
+        auth=(STRIPE_SECRET_KEY, ""),
+        data={
+            "mode": "subscription",
+            "line_items[0][price]": STRIPE_PRICE_ID,
+            "line_items[0][quantity]": "1",
+            "success_url": "https://portuniana-bot.onrender.com/payment-success",
+            "cancel_url": "https://portuniana-bot.onrender.com/payment-cancel",
+            "client_reference_id": str(chat_id),
+            "metadata[telegram_chat_id]": str(chat_id),
+        }
     )
-    return session.url
+    result = resp.json()
+    print(f"DEBUG Stripe: {result}")
+    if "url" in result:
+        return result["url"]
+    raise Exception(f"Stripe error: {result}")
 
 
 # ── Telegram webhook ─────────────────────────────────────────────
